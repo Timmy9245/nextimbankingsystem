@@ -38,11 +38,11 @@ function AuthPage() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  async function handleSignup(form: FormData) {
+  async function handleSignup(form: FormData): Promise<void> {
     const parsed = signupSchema.safeParse({
       fullName: form.get("fullName"), email: form.get("email"), password: form.get("password"),
     });
-    if (!parsed.success) return toast.error(parsed.error.errors[0].message);
+    if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
@@ -50,17 +50,17 @@ function AuthPage() {
       options: { data: { full_name: parsed.data.fullName }, emailRedirectTo: `${window.location.origin}/dashboard` },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Welcome to Veritas Microfinance!");
   }
 
-  async function handleLogin(form: FormData) {
+  async function handleLogin(form: FormData): Promise<void> {
     const parsed = loginSchema.safeParse({ email: form.get("email"), password: form.get("password") });
-    if (!parsed.success) return toast.error(parsed.error.errors[0].message);
+    if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
   }
 
   return (
