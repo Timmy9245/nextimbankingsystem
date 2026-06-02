@@ -38,7 +38,12 @@ function AuthedLayout() {
       <header className="border-b border-border/60 bg-card sticky top-0 z-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
           <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
-            <img src={actualLogo.url} alt="NexTim" className="h-8 w-8 rounded-md object-cover" />
+            <img
+              src={actualLogo.url}
+              alt="NexTim"
+              className="h-8 w-8 object-contain"
+              style={{ mixBlendMode: "multiply" }}
+            />
             <span className="hidden sm:inline">NexTim</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
