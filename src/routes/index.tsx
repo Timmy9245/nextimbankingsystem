@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRightLeft, TrendingUp } from "lucide-react";
 import actualLogo from "@/assets/actual_logo.jpg.asset.json";
+import wordmark from "@/assets/nextim_wordmark.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +34,7 @@ function Index() {
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-24 text-center">
+        <img src={wordmark.url} alt="NexTim" className="mx-auto mb-8 h-16 md:h-20 w-auto" />
         <h1 className="mx-auto max-w-3xl text-5xl font-semibold tracking-tight md:text-6xl">
           The nexus of smart banking.
         </h1>
