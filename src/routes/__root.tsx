@@ -82,11 +82,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "NexTim — Modern Campus Banking" },
       { name: "description", content: "NexTim is a modern banking experience for students and staff." },
       { name: "author", content: "NexTim" },
-      { property: "og:title", content: "NexTim" },
-      { property: "og:description", content: "Modern banking for the university community." },
+      { property: "og:title", content: "NexTim — Modern Campus Banking" },
+      { property: "og:description", content: "NexTim is a modern banking experience for students and staff." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "NexTim — Modern Campus Banking" },
+      { name: "twitter:description", content: "NexTim is a modern banking experience for students and staff." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6c5107f6-ee10-42e9-90f1-f9aeeb670275/id-preview-4beda1a8--79b5cb29-972f-40ee-a43f-4a563aefb949.lovable.app-1780427222697.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6c5107f6-ee10-42e9-90f1-f9aeeb670275/id-preview-4beda1a8--79b5cb29-972f-40ee-a43f-4a563aefb949.lovable.app-1780427222697.png" },
     ],
     links: [
       {
