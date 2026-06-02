@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Banknote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import actualLogo from "@/assets/actual_logo.jpg.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Sign in — NexTim" }] }),
@@ -68,7 +68,7 @@ function AuthPage() {
       <div className="hidden lg:flex flex-col justify-between p-12 text-primary-foreground"
            style={{ background: "var(--gradient-primary)" }}>
         <Link to="/" className="flex items-center gap-2 font-semibold">
-          <Banknote className="h-5 w-5" /> NexTim
+          <img src={actualLogo.url} alt="NexTim" className="h-6 w-6 rounded object-cover" /> NexTim
         </Link>
         <div>
           <h2 className="text-4xl font-semibold tracking-tight">Banking, simplified for campus.</h2>
@@ -82,7 +82,7 @@ function AuthPage() {
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <Link to="/" className="lg:hidden mb-6 flex items-center gap-2 font-semibold">
-            <Banknote className="h-5 w-5 text-primary" /> NexTim
+            <img src={actualLogo.url} alt="NexTim" className="h-6 w-6 rounded object-cover" /> NexTim
           </Link>
           <Tabs defaultValue="login">
             <TabsList className="grid w-full grid-cols-2">

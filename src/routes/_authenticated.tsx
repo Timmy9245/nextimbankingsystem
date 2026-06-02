@@ -1,8 +1,9 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Banknote, LayoutDashboard, History, Landmark, ShieldAlert, LogOut } from "lucide-react";
+import { LayoutDashboard, History, Landmark, ShieldAlert, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import actualLogo from "@/assets/actual_logo.jpg.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -37,9 +38,7 @@ function AuthedLayout() {
       <header className="border-b border-border/60 bg-card sticky top-0 z-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
           <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
-            <div className="grid h-8 w-8 place-items-center rounded-md" style={{ background: "var(--gradient-primary)" }}>
-              <Banknote className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <img src={actualLogo.url} alt="NexTim" className="h-8 w-8 rounded-md object-cover" />
             <span className="hidden sm:inline">NexTim</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
