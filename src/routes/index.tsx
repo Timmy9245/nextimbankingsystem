@@ -33,14 +33,11 @@ function Index() {
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-24 text-center">
-        <span className="inline-block rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          For the university community
-        </span>
-        <h1 className="mx-auto mt-6 max-w-3xl text-5xl font-semibold tracking-tight md:text-6xl">
-          Banking that fits campus life.
+        <h1 className="mx-auto max-w-3xl text-5xl font-semibold tracking-tight md:text-6xl">
+          The nexus of smart banking.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-          Open a savings or current account in seconds. Send money, take a microloan, and track every kobo — all from one polished dashboard.
+          One intelligent hub connecting your accounts, payments, and goals — move money, borrow, and grow with clarity.
         </p>
         <div className="mt-8 flex justify-center gap-3">
           <Button asChild size="lg" className="shadow-lg">
