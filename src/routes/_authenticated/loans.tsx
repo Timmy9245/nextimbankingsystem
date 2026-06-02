@@ -13,7 +13,7 @@ import { formatNaira } from "@/components/banking/AccountCard";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/loans")({
-  head: () => ({ meta: [{ title: "Loans — Veritas Microfinance" }] }),
+  head: () => ({ meta: [{ title: "Loans — NexTim" }] }),
   component: Loans,
 });
 

@@ -13,7 +13,7 @@ import { Plus, ArrowDown, ArrowUp, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Veritas Microfinance" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — NexTim" }] }),
   component: Dashboard,
 });
 

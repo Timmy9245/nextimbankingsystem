@@ -10,7 +10,7 @@ import { formatNaira } from "@/components/banking/AccountCard";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/history")({
-  head: () => ({ meta: [{ title: "Transactions — Veritas Microfinance" }] }),
+  head: () => ({ meta: [{ title: "Transactions — NexTim" }] }),
   component: History,
 });
 

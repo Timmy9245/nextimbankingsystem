@@ -1,5 +1,5 @@
 /**
- * OOP layer for the Veritas Microfinance Bank.
+ * OOP layer for the NexTim.
  *
  * Demonstrates:
  *  - Abstraction (abstract Account, abstract Transaction)
