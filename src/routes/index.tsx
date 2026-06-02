@@ -23,7 +23,12 @@ function Index() {
       <header className="border-b border-border/60 bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <div className="flex items-center gap-2">
-            <img src={actualLogo.url} alt="NexTim" className="h-9 w-9 rounded-lg object-cover" />
+            <img
+              src={actualLogo.url}
+              alt="NexTim"
+              className="h-9 w-9 object-contain"
+              style={{ mixBlendMode: "multiply" }}
+            />
             <span className="font-semibold tracking-tight">NexTim</span>
           </div>
           <div className="flex gap-2">
@@ -34,7 +39,12 @@ function Index() {
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-24 text-center">
-        <img src={wordmark.url} alt="NexTim" className="mx-auto mb-8 h-16 md:h-20 w-auto" />
+        <img
+          src={wordmark.url}
+          alt="NexTim"
+          className="mx-auto mb-8 h-16 md:h-20 w-auto"
+          style={{ mixBlendMode: "multiply" }}
+        />
         <h1 className="mx-auto max-w-3xl text-5xl font-semibold tracking-tight md:text-6xl">
           The nexus of smart banking.
         </h1>

@@ -68,7 +68,12 @@ function AuthPage() {
       <div className="hidden lg:flex flex-col justify-between p-12 text-primary-foreground"
            style={{ background: "var(--gradient-primary)" }}>
         <Link to="/" className="flex items-center gap-2 font-semibold">
-          <img src={actualLogo.url} alt="NexTim" className="h-6 w-6 rounded object-cover" /> NexTim
+          <img
+            src={actualLogo.url}
+            alt="NexTim"
+            className="h-6 w-6 object-contain"
+            style={{ mixBlendMode: "screen" }}
+          /> NexTim
         </Link>
         <div>
           <h2 className="text-4xl font-semibold tracking-tight">Banking, simplified for campus.</h2>
@@ -82,7 +87,12 @@ function AuthPage() {
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <Link to="/" className="lg:hidden mb-6 flex items-center gap-2 font-semibold">
-            <img src={actualLogo.url} alt="NexTim" className="h-6 w-6 rounded object-cover" /> NexTim
+            <img
+              src={actualLogo.url}
+              alt="NexTim"
+              className="h-6 w-6 object-contain"
+              style={{ mixBlendMode: "multiply" }}
+            /> NexTim
           </Link>
           <Tabs defaultValue="login">
             <TabsList className="grid w-full grid-cols-2">
