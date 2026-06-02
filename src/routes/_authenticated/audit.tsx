@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/audit")({
-  head: () => ({ meta: [{ title: "Audit & Alerts — Veritas Microfinance" }] }),
+  head: () => ({ meta: [{ title: "Audit & Alerts — NexTim" }] }),
   component: AuditPage,
 });
 

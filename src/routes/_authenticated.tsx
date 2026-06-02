@@ -40,7 +40,7 @@ function AuthedLayout() {
             <div className="grid h-8 w-8 place-items-center rounded-md" style={{ background: "var(--gradient-primary)" }}>
               <Banknote className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="hidden sm:inline">Veritas Microfinance</span>
+            <span className="hidden sm:inline">NexTim</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             {nav.map((n) => (

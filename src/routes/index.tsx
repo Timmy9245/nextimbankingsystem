@@ -6,9 +6,9 @@ import { Shield, Banknote, ArrowRightLeft, TrendingUp } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Veritas Microfinance Bank — Secure Campus Banking" },
+      { title: "NexTim — Secure Campus Banking" },
       { name: "description", content: "Modern banking for students and staff. Open an account, transfer funds, take a loan — all in one place." },
-      { property: "og:title", content: "Veritas Microfinance Bank" },
+      { property: "og:title", content: "NexTim" },
       { property: "og:description", content: "Secure web banking built for the university community." },
     ],
   }),
@@ -24,7 +24,7 @@ function Index() {
             <div className="grid h-9 w-9 place-items-center rounded-lg" style={{ background: "var(--gradient-primary)" }}>
               <Banknote className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-semibold tracking-tight">Veritas Microfinance</span>
+            <span className="font-semibold tracking-tight">NexTim</span>
           </div>
           <div className="flex gap-2">
             <Button asChild variant="ghost"><Link to="/auth">Sign in</Link></Button>
@@ -55,7 +55,7 @@ function Index() {
 
       <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-24 md:grid-cols-3">
         {[
-          { icon: ArrowRightLeft, title: "Instant transfers", body: "Move funds between your accounts or pay other Veritas customers in one tap." },
+          { icon: ArrowRightLeft, title: "Instant transfers", body: "Move funds between your accounts or pay other NexTim customers in one tap." },
           { icon: Shield, title: "Bank-grade security", body: "Every transaction is atomic, audited, and protected by row-level access rules." },
           { icon: TrendingUp, title: "Microloans & analytics", body: "Apply for a loan, repay flexibly, and watch your spending trends update live." },
         ].map(({ icon: Icon, title, body }) => (
@@ -70,7 +70,7 @@ function Index() {
       </section>
 
       <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Veritas Microfinance Bank · CSC 302 Project
+        © {new Date().getFullYear()} NexTim · CSC 302 Project
       </footer>
     </div>
   );
