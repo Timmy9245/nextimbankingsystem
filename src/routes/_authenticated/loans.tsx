@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatNaira } from "@/components/banking/AccountCard";
 import { toast } from "sonner";
 import { ReceiptDialog } from "@/components/banking/Receipt";
+import { PinDialog } from "@/components/banking/PinDialog";
 
 export const Route = createFileRoute("/_authenticated/loans")({
   head: () => ({ meta: [{ title: "Loans — NexTim" }] }),
@@ -38,20 +39,29 @@ function Loans() {
   const [acctId, setAcctId] = useState("");
   const [loading, setLoading] = useState(false);
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const [pinOpen, setPinOpen] = useState(false);
+  const [pending, setPending] = useState<{ principal: number; purpose: string } | null>(null);
 
   async function apply(form: FormData): Promise<void> {
     const principal = Number(form.get("principal"));
     const purpose = String(form.get("purpose") ?? "");
     if (!acctId) { toast.error("Pick an account to receive the funds"); return; }
     if (!principal || principal <= 0) { toast.error("Enter a valid amount"); return; }
+    setPending({ principal, purpose });
+    setPinOpen(true);
+  }
+
+  async function confirmApply(pin: string) {
+    if (!pending) return;
     setLoading(true);
     try {
-      const id = await LoanService.apply(acctId, principal, purpose);
+      const id = await LoanService.apply(acctId, pending.principal, pending.purpose, pin);
       toast.success("Loan approved and disbursed");
       qc.invalidateQueries({ queryKey: ["loans"] });
       qc.invalidateQueries({ queryKey: ["accounts"] });
       if (id) setReceiptId(id);
-    } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
+      setPending(null);
+    } catch (e) { toast.error((e as Error).message); throw e; } finally { setLoading(false); }
   }
 
   return (
@@ -92,6 +102,9 @@ function Loans() {
         </CardContent>
       </Card>
       <ReceiptDialog open={!!receiptId} onOpenChange={(v) => !v && setReceiptId(null)} txId={receiptId} variant="compact" />
+      <PinDialog open={pinOpen} onOpenChange={setPinOpen} onSubmit={confirmApply}
+        title="Confirm loan application"
+        description={pending ? `Borrow ${formatNaira(pending.principal)} — repayable at 10% interest.` : ""} />
     </div>
   );
 }
@@ -100,17 +113,23 @@ function LoanRow({ loan, accounts, onRepaid }: { loan: Loan; accounts: { id: str
   const [acctId, setAcctId] = useState(accounts[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
 
-  async function repay() {
+  function startRepay() {
     const amt = Number(amount);
     if (!acctId || !amt || amt <= 0) { toast.error("Pick account and valid amount"); return; }
+    setPinOpen(true);
+  }
+
+  async function confirmRepay(pin: string) {
+    const amt = Number(amount);
     setLoading(true);
     try {
-      const id = await LoanService.repay(loan.id, acctId, amt);
+      const id = await LoanService.repay(loan.id, acctId, amt, pin);
       toast.success("Repayment posted");
       setAmount("");
       onRepaid(id);
-    } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
+    } catch (e) { toast.error((e as Error).message); throw e; } finally { setLoading(false); }
   }
 
   return (
@@ -137,7 +156,10 @@ function LoanRow({ loan, accounts, onRepaid }: { loan: Loan; accounts: { id: str
             </Select>
           </div>
           <div className="space-y-1"><Label className="text-xs">Amount (₦)</Label><Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-[160px]" /></div>
-          <Button onClick={repay} disabled={loading}>{loading ? "Posting…" : "Repay"}</Button>
+          <Button onClick={startRepay} disabled={loading}>{loading ? "Posting…" : "Repay"}</Button>
+          <PinDialog open={pinOpen} onOpenChange={setPinOpen} onSubmit={confirmRepay}
+            title="Confirm loan repayment"
+            description={amount ? `Repay ${formatNaira(Number(amount))} from selected account.` : ""} />
         </div>
       )}
     </div>
