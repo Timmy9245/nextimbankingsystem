@@ -304,6 +304,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_receipt: { Args: { p_tx: string }; Returns: Json }
       sp_apply_loan: {
         Args: { p_account: string; p_principal: number; p_purpose: string }
         Returns: {

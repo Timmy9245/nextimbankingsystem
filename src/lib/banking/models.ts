@@ -75,14 +75,14 @@ export class CurrentAccount extends Account {
 
 /** Service wrappers around the PL/pgSQL stored procedures. */
 export class TransferService {
-  static async deposit(accountId: string, amount: number, description?: string) {
+  static async deposit(accountId: string, amount: number, description?: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_deposit", {
       p_account: accountId, p_amount: amount, p_description: description ?? "Deposit",
     });
     if (error) throw new BankingError(error.message);
-    return data;
+    return (data as { id: string }).id;
   }
-  static async withdraw(accountId: string, amount: number, description?: string) {
+  static async withdraw(accountId: string, amount: number, description?: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_withdraw", {
       p_account: accountId, p_amount: amount, p_description: description ?? "Withdrawal",
     });
@@ -90,9 +90,9 @@ export class TransferService {
       if (/Insufficient/i.test(error.message)) throw new InsufficientFundsError();
       throw new BankingError(error.message);
     }
-    return data;
+    return (data as { id: string }).id;
   }
-  static async transfer(fromId: string, toAccountNumber: string, amount: number, description?: string) {
+  static async transfer(fromId: string, toAccountNumber: string, amount: number, description?: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_transfer", {
       p_from: fromId, p_to_account_number: toAccountNumber,
       p_amount: amount, p_description: description ?? "Transfer",
@@ -102,19 +102,30 @@ export class TransferService {
       if (/not found/i.test(error.message)) throw new InvalidAccountError(error.message);
       throw new BankingError(error.message);
     }
-    return data;
+    // sp_transfer returns the transfers row; look up the outgoing tx id by reference.
+    const ref = (data as { reference: string }).reference;
+    const { data: tx, error: txErr } = await supabase
+      .from("transactions").select("id")
+      .eq("reference", ref).eq("account_id", fromId).maybeSingle();
+    if (txErr || !tx) throw new BankingError(txErr?.message ?? "Receipt unavailable");
+    return tx.id as string;
   }
 }
 
 export class LoanService {
-  static async apply(accountId: string, principal: number, purpose: string) {
+  static async apply(accountId: string, principal: number, purpose: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_apply_loan", {
       p_account: accountId, p_principal: principal, p_purpose: purpose,
     });
     if (error) throw new BankingError(error.message);
-    return data;
+    // Returns loans row; fetch disbursement tx id by description/reference prefix.
+    const { data: tx } = await supabase
+      .from("transactions").select("id")
+      .eq("account_id", accountId).eq("type", "loan_disbursement")
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    return (tx?.id as string) ?? "";
   }
-  static async repay(loanId: string, accountId: string, amount: number) {
+  static async repay(loanId: string, accountId: string, amount: number): Promise<string> {
     const { data, error } = await supabase.rpc("sp_repay_loan", {
       p_loan: loanId, p_account: accountId, p_amount: amount,
     });
@@ -122,7 +133,11 @@ export class LoanService {
       if (/Insufficient/i.test(error.message)) throw new InsufficientFundsError();
       throw new BankingError(error.message);
     }
-    return data;
+    const { data: tx } = await supabase
+      .from("transactions").select("id")
+      .eq("account_id", accountId).eq("type", "loan_repayment")
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    return (tx?.id as string) ?? "";
   }
 }
 

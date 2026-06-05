@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatNaira } from "@/components/banking/AccountCard";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { ReceiptDialog } from "@/components/banking/Receipt";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "Transactions — NexTim" }] }),
@@ -22,6 +23,7 @@ interface Tx {
 function History() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [receiptId, setReceiptId] = useState<string | null>(null);
 
   const { data: txs = [], isLoading } = useQuery({
     queryKey: ["transactions", from, to],
@@ -91,7 +93,7 @@ function History() {
                 </thead>
                 <tbody>
                   {txs.map((t) => (
-                    <tr key={t.id} className="border-b last:border-0 hover:bg-secondary/40">
+                    <tr key={t.id} onClick={() => setReceiptId(t.id)} className="border-b last:border-0 hover:bg-secondary/40 cursor-pointer">
                       <td className="py-3 whitespace-nowrap">{new Date(t.created_at).toLocaleString()}</td>
                       <td><Badge variant={t.type.includes("out") || t.type === "withdrawal" || t.type === "loan_repayment" ? "destructive" : "secondary"}>{t.type.replace("_", " ")}</Badge></td>
                       <td className="text-muted-foreground">{t.description}</td>
@@ -106,6 +108,7 @@ function History() {
           )}
         </CardContent>
       </Card>
+      <ReceiptDialog open={!!receiptId} onOpenChange={(v) => !v && setReceiptId(null)} txId={receiptId} variant="detailed" />
     </div>
   );
 }
