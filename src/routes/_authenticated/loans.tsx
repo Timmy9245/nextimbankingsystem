@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { formatNaira } from "@/components/banking/AccountCard";
 import { toast } from "sonner";
+import { ReceiptDialog } from "@/components/banking/Receipt";
 
 export const Route = createFileRoute("/_authenticated/loans")({
   head: () => ({ meta: [{ title: "Loans — NexTim" }] }),
@@ -36,6 +37,7 @@ function Loans() {
 
   const [acctId, setAcctId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [receiptId, setReceiptId] = useState<string | null>(null);
 
   async function apply(form: FormData): Promise<void> {
     const principal = Number(form.get("principal"));
@@ -44,10 +46,11 @@ function Loans() {
     if (!principal || principal <= 0) { toast.error("Enter a valid amount"); return; }
     setLoading(true);
     try {
-      await LoanService.apply(acctId, principal, purpose);
+      const id = await LoanService.apply(acctId, principal, purpose);
       toast.success("Loan approved and disbursed");
       qc.invalidateQueries({ queryKey: ["loans"] });
       qc.invalidateQueries({ queryKey: ["accounts"] });
+      if (id) setReceiptId(id);
     } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
   }
 
@@ -83,16 +86,17 @@ function Loans() {
         <CardContent>
           {loans.length === 0 ? <p className="text-sm text-muted-foreground">No loans yet.</p> : (
             <div className="space-y-3">
-              {loans.map((l) => <LoanRow key={l.id} loan={l} accounts={accounts.map(a => ({ id: a.id, label: a.accountNumber }))} onRepaid={() => { qc.invalidateQueries({ queryKey: ["loans"] }); qc.invalidateQueries({ queryKey: ["accounts"] }); }} />)}
+              {loans.map((l) => <LoanRow key={l.id} loan={l} accounts={accounts.map(a => ({ id: a.id, label: a.accountNumber }))} onRepaid={(id) => { qc.invalidateQueries({ queryKey: ["loans"] }); qc.invalidateQueries({ queryKey: ["accounts"] }); if (id) setReceiptId(id); }} />)}
             </div>
           )}
         </CardContent>
       </Card>
+      <ReceiptDialog open={!!receiptId} onOpenChange={(v) => !v && setReceiptId(null)} txId={receiptId} variant="compact" />
     </div>
   );
 }
 
-function LoanRow({ loan, accounts, onRepaid }: { loan: Loan; accounts: { id: string; label: string }[]; onRepaid: () => void }) {
+function LoanRow({ loan, accounts, onRepaid }: { loan: Loan; accounts: { id: string; label: string }[]; onRepaid: (txId?: string) => void }) {
   const [acctId, setAcctId] = useState(accounts[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,10 +106,10 @@ function LoanRow({ loan, accounts, onRepaid }: { loan: Loan; accounts: { id: str
     if (!acctId || !amt || amt <= 0) { toast.error("Pick account and valid amount"); return; }
     setLoading(true);
     try {
-      await LoanService.repay(loan.id, acctId, amt);
+      const id = await LoanService.repay(loan.id, acctId, amt);
       toast.success("Repayment posted");
       setAmount("");
-      onRepaid();
+      onRepaid(id);
     } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
   }
 
