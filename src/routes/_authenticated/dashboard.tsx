@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, ArrowDown, ArrowUp, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
+import { ReceiptDialog } from "@/components/banking/Receipt";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — NexTim" }] }),
@@ -24,6 +25,7 @@ function Dashboard() {
     queryFn: () => AccountRepository.listForUser(),
   });
   const [selectedId, setSelectedId] = useState<string>("");
+  const [receiptId, setReceiptId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedId && accounts.length) setSelectedId(accounts[0].id);
@@ -33,6 +35,8 @@ function Dashboard() {
   const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
 
   function refresh() { qc.invalidateQueries({ queryKey: ["accounts"] }); qc.invalidateQueries({ queryKey: ["transactions"] }); }
+
+  function showReceipt(id: string) { if (id) setReceiptId(id); }
 
   return (
     <div className="space-y-8">
@@ -60,9 +64,10 @@ function Dashboard() {
             ))}
           </div>
 
-          {selected && <Actions account={selected} accounts={accounts} onDone={refresh} />}
+          {selected && <Actions account={selected} accounts={accounts} onDone={refresh} onReceipt={showReceipt} />}
         </>
       )}
+      <ReceiptDialog open={!!receiptId} onOpenChange={(v) => !v && setReceiptId(null)} txId={receiptId} variant="compact" />
     </div>
   );
 }
@@ -92,7 +97,7 @@ function OpenAccountButton({ onOpened }: { onOpened: () => void }) {
   );
 }
 
-function Actions({ account, accounts, onDone }: { account: Account; accounts: Account[]; onDone: () => void }) {
+function Actions({ account, accounts, onDone, onReceipt }: { account: Account; accounts: Account[]; onDone: () => void; onReceipt: (id: string) => void }) {
   return (
     <Card>
       <CardHeader>
@@ -109,12 +114,12 @@ function Actions({ account, accounts, onDone }: { account: Account; accounts: Ac
             <TabsTrigger value="transfer"><ArrowRightLeft className="h-4 w-4 mr-1" />Transfer</TabsTrigger>
           </TabsList>
           <TabsContent value="deposit"><AmountForm label="Deposit" onSubmit={async (amt, desc) => {
-            await TransferService.deposit(account.id, amt, desc); toast.success("Deposit successful"); onDone();
+            const id = await TransferService.deposit(account.id, amt, desc); toast.success("Deposit successful"); onDone(); onReceipt(id);
           }} /></TabsContent>
           <TabsContent value="withdraw"><AmountForm label="Withdraw" onSubmit={async (amt, desc) => {
-            await TransferService.withdraw(account.id, amt, desc); toast.success("Withdrawal successful"); onDone();
+            const id = await TransferService.withdraw(account.id, amt, desc); toast.success("Withdrawal successful"); onDone(); onReceipt(id);
           }} /></TabsContent>
-          <TabsContent value="transfer"><TransferForm account={account} accounts={accounts} onDone={onDone} /></TabsContent>
+          <TabsContent value="transfer"><TransferForm account={account} accounts={accounts} onDone={onDone} onReceipt={onReceipt} /></TabsContent>
         </Tabs>
       </CardContent>
     </Card>
@@ -139,7 +144,7 @@ function AmountForm({ label, onSubmit }: { label: string; onSubmit: (amount: num
   );
 }
 
-function TransferForm({ account, accounts, onDone }: { account: Account; accounts: Account[]; onDone: () => void }) {
+function TransferForm({ account, accounts, onDone, onReceipt }: { account: Account; accounts: Account[]; onDone: () => void; onReceipt: (id: string) => void }) {
   const [loading, setLoading] = useState(false);
   async function action(form: FormData): Promise<void> {
     const to = String(form.get("to") ?? "").trim();
@@ -149,9 +154,10 @@ function TransferForm({ account, accounts, onDone }: { account: Account; account
     if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
     setLoading(true);
     try {
-      await TransferService.transfer(account.id, to, amount, desc);
+      const id = await TransferService.transfer(account.id, to, amount, desc);
       toast.success("Transfer complete");
       onDone();
+      onReceipt(id);
     } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
   }
   const others = accounts.filter((a) => a.id !== account.id);
