@@ -77,6 +77,53 @@ export type Database = {
         }
         Relationships: []
       }
+      bill_payments: {
+        Row: {
+          account_id: string
+          amount: number
+          category: string
+          created_at: string
+          customer_id: string
+          customer_ref: string
+          id: string
+          provider: string
+          reference: string
+          status: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          category: string
+          created_at?: string
+          customer_id: string
+          customer_ref: string
+          id?: string
+          provider: string
+          reference: string
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          category?: string
+          created_at?: string
+          customer_id?: string
+          customer_ref?: string
+          id?: string
+          provider?: string
+          reference?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_payments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fraud_alerts: {
         Row: {
           created_at: string
@@ -186,18 +233,21 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          pin_hash: string | null
         }
         Insert: {
           created_at?: string
           full_name: string
           id: string
           phone?: string | null
+          pin_hash?: string | null
         }
         Update: {
           created_at?: string
           full_name?: string
           id?: string
           phone?: string | null
+          pin_hash?: string | null
         }
         Relationships: []
       }
@@ -306,7 +356,12 @@ export type Database = {
     Functions: {
       get_receipt: { Args: { p_tx: string }; Returns: Json }
       sp_apply_loan: {
-        Args: { p_account: string; p_principal: number; p_purpose: string }
+        Args: {
+          p_account: string
+          p_pin: string
+          p_principal: number
+          p_purpose: string
+        }
         Returns: {
           account_id: string
           approved_at: string | null
@@ -327,7 +382,41 @@ export type Database = {
         }
       }
       sp_deposit: {
-        Args: { p_account: string; p_amount: number; p_description?: string }
+        Args: {
+          p_account: string
+          p_amount: number
+          p_description?: string
+          p_pin: string
+        }
+        Returns: {
+          account_id: string
+          amount: number
+          balance_after: number
+          created_at: string
+          customer_id: string
+          description: string | null
+          id: string
+          reference: string | null
+          status: string
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "transactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      sp_has_pin: { Args: never; Returns: boolean }
+      sp_pay_bill: {
+        Args: {
+          p_account: string
+          p_amount: number
+          p_category: string
+          p_customer_ref: string
+          p_pin: string
+          p_provider: string
+        }
         Returns: {
           account_id: string
           amount: number
@@ -348,7 +437,12 @@ export type Database = {
         }
       }
       sp_repay_loan: {
-        Args: { p_account: string; p_amount: number; p_loan: string }
+        Args: {
+          p_account: string
+          p_amount: number
+          p_loan: string
+          p_pin: string
+        }
         Returns: {
           account_id: string
           approved_at: string | null
@@ -368,11 +462,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      sp_set_pin: {
+        Args: { p_current?: string; p_new: string }
+        Returns: undefined
+      }
       sp_transfer: {
         Args: {
           p_amount: number
           p_description?: string
           p_from: string
+          p_pin: string
           p_to_account_number: string
         }
         Returns: {
@@ -394,7 +493,12 @@ export type Database = {
         }
       }
       sp_withdraw: {
-        Args: { p_account: string; p_amount: number; p_description?: string }
+        Args: {
+          p_account: string
+          p_amount: number
+          p_description?: string
+          p_pin: string
+        }
         Returns: {
           account_id: string
           amount: number
@@ -414,6 +518,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      verify_pin: { Args: { p_pin: string; p_uid: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
