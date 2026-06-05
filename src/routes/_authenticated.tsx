@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, History, Landmark, ShieldAlert, LogOut } from "lucide-react";
+import { LayoutDashboard, History, Landmark, ShieldAlert, LogOut, Receipt, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import actualLogo from "@/assets/actual_logo.jpg.asset.json";
 
@@ -23,14 +23,16 @@ function AuthedLayout() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    navigate({ to: "/auth" });
+    navigate({ to: "/", replace: true });
   }
 
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/bills", label: "Pay Bills", icon: Receipt },
     { to: "/history", label: "Transactions", icon: History },
     { to: "/loans", label: "Loans", icon: Landmark },
     { to: "/audit", label: "Audit & Alerts", icon: ShieldAlert },
+    { to: "/settings", label: "Settings", icon: SettingsIcon },
   ] as const;
 
   return (

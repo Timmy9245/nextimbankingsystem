@@ -12,6 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, ArrowDown, ArrowUp, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ReceiptDialog } from "@/components/banking/Receipt";
+import { PinDialog } from "@/components/banking/PinDialog";
+import { PinService } from "@/lib/banking/models";
+import { Link } from "@tanstack/react-router";
+import { ShieldAlert } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — NexTim" }] }),
@@ -24,6 +28,7 @@ function Dashboard() {
     queryKey: ["accounts"],
     queryFn: () => AccountRepository.listForUser(),
   });
+  const { data: hasPin } = useQuery({ queryKey: ["has-pin"], queryFn: () => PinService.hasPin() });
   const [selectedId, setSelectedId] = useState<string>("");
   const [receiptId, setReceiptId] = useState<string | null>(null);
 
@@ -40,6 +45,19 @@ function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {hasPin === false && (
+        <Card className="border-primary/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-primary" /> Set up your transaction PIN</CardTitle>
+            <CardDescription>
+              You need a 4-digit PIN before you can deposit, withdraw, transfer or pay bills.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild><Link to="/settings">Set up PIN</Link></Button>
+          </CardContent>
+        </Card>
+      )}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p className="text-sm text-muted-foreground">Total balance</p>
@@ -98,6 +116,25 @@ function OpenAccountButton({ onOpened }: { onOpened: () => void }) {
 }
 
 function Actions({ account, accounts, onDone, onReceipt }: { account: Account; accounts: Account[]; onDone: () => void; onReceipt: (id: string) => void }) {
+  const [pinOpen, setPinOpen] = useState(false);
+  const [pending, setPending] = useState<{ run: (pin: string) => Promise<string>; label: string; amount: number } | null>(null);
+
+  function ask(label: string, amount: number, run: (pin: string) => Promise<string>) {
+    setPending({ run, label, amount });
+    setPinOpen(true);
+  }
+
+  async function confirm(pin: string) {
+    if (!pending) return;
+    try {
+      const id = await pending.run(pin);
+      toast.success(`${pending.label} successful`);
+      onDone();
+      onReceipt(id);
+      setPending(null);
+    } catch (e) { toast.error((e as Error).message); throw e; }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -113,52 +150,46 @@ function Actions({ account, accounts, onDone, onReceipt }: { account: Account; a
             <TabsTrigger value="withdraw"><ArrowUp className="h-4 w-4 mr-1" />Withdraw</TabsTrigger>
             <TabsTrigger value="transfer"><ArrowRightLeft className="h-4 w-4 mr-1" />Transfer</TabsTrigger>
           </TabsList>
-          <TabsContent value="deposit"><AmountForm label="Deposit" onSubmit={async (amt, desc) => {
-            const id = await TransferService.deposit(account.id, amt, desc); toast.success("Deposit successful"); onDone(); onReceipt(id);
+          <TabsContent value="deposit"><AmountForm label="Deposit" onSubmit={(amt, desc) => {
+            ask("Deposit", amt, (pin) => TransferService.deposit(account.id, amt, pin, desc));
           }} /></TabsContent>
-          <TabsContent value="withdraw"><AmountForm label="Withdraw" onSubmit={async (amt, desc) => {
-            const id = await TransferService.withdraw(account.id, amt, desc); toast.success("Withdrawal successful"); onDone(); onReceipt(id);
+          <TabsContent value="withdraw"><AmountForm label="Withdraw" onSubmit={(amt, desc) => {
+            ask("Withdrawal", amt, (pin) => TransferService.withdraw(account.id, amt, pin, desc));
           }} /></TabsContent>
-          <TabsContent value="transfer"><TransferForm account={account} accounts={accounts} onDone={onDone} onReceipt={onReceipt} /></TabsContent>
+          <TabsContent value="transfer"><TransferForm account={account} accounts={accounts} onAsk={ask} /></TabsContent>
         </Tabs>
       </CardContent>
+      <PinDialog open={pinOpen} onOpenChange={setPinOpen} onSubmit={confirm}
+        title={`Confirm ${pending?.label ?? ""}`}
+        description={pending ? `Authorise ${formatNaira(pending.amount)}.` : ""} />
     </Card>
   );
 }
 
-function AmountForm({ label, onSubmit }: { label: string; onSubmit: (amount: number, desc: string) => Promise<void> }) {
-  const [loading, setLoading] = useState(false);
-  async function action(form: FormData): Promise<void> {
+function AmountForm({ label, onSubmit }: { label: string; onSubmit: (amount: number, desc: string) => void }) {
+  function action(form: FormData): void {
     const amount = Number(form.get("amount"));
     const desc = String(form.get("description") ?? "");
     if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
-    setLoading(true);
-    try { await onSubmit(amount, desc); } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
+    onSubmit(amount, desc);
   }
   return (
     <form action={action} className="space-y-4 pt-4 max-w-md">
       <div className="space-y-2"><Label>Amount (₦)</Label><Input name="amount" type="number" step="0.01" min="0.01" required /></div>
       <div className="space-y-2"><Label>Description (optional)</Label><Input name="description" maxLength={140} /></div>
-      <Button type="submit" disabled={loading}>{loading ? "Processing…" : label}</Button>
+      <Button type="submit">{label}</Button>
     </form>
   );
 }
 
-function TransferForm({ account, accounts, onDone, onReceipt }: { account: Account; accounts: Account[]; onDone: () => void; onReceipt: (id: string) => void }) {
-  const [loading, setLoading] = useState(false);
-  async function action(form: FormData): Promise<void> {
+function TransferForm({ account, accounts, onAsk }: { account: Account; accounts: Account[]; onAsk: (label: string, amount: number, run: (pin: string) => Promise<string>) => void }) {
+  function action(form: FormData): void {
     const to = String(form.get("to") ?? "").trim();
     const amount = Number(form.get("amount"));
     const desc = String(form.get("description") ?? "");
     if (!to) { toast.error("Enter destination account number"); return; }
     if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
-    setLoading(true);
-    try {
-      const id = await TransferService.transfer(account.id, to, amount, desc);
-      toast.success("Transfer complete");
-      onDone();
-      onReceipt(id);
-    } catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
+    onAsk("Transfer", amount, (pin) => TransferService.transfer(account.id, to, amount, pin, desc));
   }
   const others = accounts.filter((a) => a.id !== account.id);
   return (
@@ -176,7 +207,7 @@ function TransferForm({ account, accounts, onDone, onReceipt }: { account: Accou
       </div>
       <div className="space-y-2"><Label>Amount (₦)</Label><Input name="amount" type="number" step="0.01" min="0.01" required /></div>
       <div className="space-y-2"><Label>Description</Label><Input name="description" maxLength={140} /></div>
-      <Button type="submit" disabled={loading}>{loading ? "Sending…" : "Send transfer"}</Button>
+      <Button type="submit">Send transfer</Button>
     </form>
   );
 }
