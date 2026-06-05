@@ -30,10 +30,7 @@ function AuthPage() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session?.user) navigate({ to: "/dashboard", replace: true });
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) navigate({ to: "/dashboard", replace: true });
+      if (_e === "SIGNED_IN" && session?.user) navigate({ to: "/dashboard", replace: true });
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
