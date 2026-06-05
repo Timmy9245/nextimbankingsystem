@@ -151,7 +151,7 @@ export class PinService {
     return Boolean(data);
   }
   static async setPin(newPin: string, currentPin?: string): Promise<void> {
-    const { error } = await supabase.rpc("sp_set_pin", { p_new: newPin, p_current: currentPin ?? null });
+    const { error } = await supabase.rpc("sp_set_pin", { p_new: newPin, p_current: currentPin });
     if (error) throw new BankingError(error.message);
   }
 }
