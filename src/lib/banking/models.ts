@@ -75,16 +75,16 @@ export class CurrentAccount extends Account {
 
 /** Service wrappers around the PL/pgSQL stored procedures. */
 export class TransferService {
-  static async deposit(accountId: string, amount: number, description?: string): Promise<string> {
+  static async deposit(accountId: string, amount: number, pin: string, description?: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_deposit", {
-      p_account: accountId, p_amount: amount, p_description: description ?? "Deposit",
+      p_account: accountId, p_amount: amount, p_pin: pin, p_description: description ?? "Deposit",
     });
     if (error) throw new BankingError(error.message);
     return (data as { id: string }).id;
   }
-  static async withdraw(accountId: string, amount: number, description?: string): Promise<string> {
+  static async withdraw(accountId: string, amount: number, pin: string, description?: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_withdraw", {
-      p_account: accountId, p_amount: amount, p_description: description ?? "Withdrawal",
+      p_account: accountId, p_amount: amount, p_pin: pin, p_description: description ?? "Withdrawal",
     });
     if (error) {
       if (/Insufficient/i.test(error.message)) throw new InsufficientFundsError();
@@ -92,10 +92,10 @@ export class TransferService {
     }
     return (data as { id: string }).id;
   }
-  static async transfer(fromId: string, toAccountNumber: string, amount: number, description?: string): Promise<string> {
+  static async transfer(fromId: string, toAccountNumber: string, amount: number, pin: string, description?: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_transfer", {
       p_from: fromId, p_to_account_number: toAccountNumber,
-      p_amount: amount, p_description: description ?? "Transfer",
+      p_amount: amount, p_pin: pin, p_description: description ?? "Transfer",
     });
     if (error) {
       if (/Insufficient/i.test(error.message)) throw new InsufficientFundsError();
@@ -113,9 +113,9 @@ export class TransferService {
 }
 
 export class LoanService {
-  static async apply(accountId: string, principal: number, purpose: string): Promise<string> {
+  static async apply(accountId: string, principal: number, purpose: string, pin: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_apply_loan", {
-      p_account: accountId, p_principal: principal, p_purpose: purpose,
+      p_account: accountId, p_principal: principal, p_purpose: purpose, p_pin: pin,
     });
     if (error) throw new BankingError(error.message);
     // Returns loans row; fetch disbursement tx id by description/reference prefix.
@@ -125,9 +125,9 @@ export class LoanService {
       .order("created_at", { ascending: false }).limit(1).maybeSingle();
     return (tx?.id as string) ?? "";
   }
-  static async repay(loanId: string, accountId: string, amount: number): Promise<string> {
+  static async repay(loanId: string, accountId: string, amount: number, pin: string): Promise<string> {
     const { data, error } = await supabase.rpc("sp_repay_loan", {
-      p_loan: loanId, p_account: accountId, p_amount: amount,
+      p_loan: loanId, p_account: accountId, p_amount: amount, p_pin: pin,
     });
     if (error) {
       if (/Insufficient/i.test(error.message)) throw new InsufficientFundsError();
@@ -138,6 +138,38 @@ export class LoanService {
       .eq("account_id", accountId).eq("type", "loan_repayment")
       .order("created_at", { ascending: false }).limit(1).maybeSingle();
     return (tx?.id as string) ?? "";
+  }
+}
+
+/** PIN management + simulated bill payments. */
+export type BillCategory = "airtime" | "data" | "electricity" | "cable_tv" | "betting";
+
+export class PinService {
+  static async hasPin(): Promise<boolean> {
+    const { data, error } = await supabase.rpc("sp_has_pin");
+    if (error) throw new BankingError(error.message);
+    return Boolean(data);
+  }
+  static async setPin(newPin: string, currentPin?: string): Promise<void> {
+    const { error } = await supabase.rpc("sp_set_pin", { p_new: newPin, p_current: currentPin ?? null });
+    if (error) throw new BankingError(error.message);
+  }
+}
+
+export class BillService {
+  static async pay(args: {
+    accountId: string; amount: number; category: BillCategory;
+    provider: string; customerRef: string; pin: string;
+  }): Promise<string> {
+    const { data, error } = await supabase.rpc("sp_pay_bill", {
+      p_account: args.accountId, p_amount: args.amount, p_category: args.category,
+      p_provider: args.provider, p_customer_ref: args.customerRef, p_pin: args.pin,
+    });
+    if (error) {
+      if (/Insufficient/i.test(error.message)) throw new InsufficientFundsError();
+      throw new BankingError(error.message);
+    }
+    return (data as { id: string }).id;
   }
 }
 
