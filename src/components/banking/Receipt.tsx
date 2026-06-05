@@ -168,9 +168,9 @@ export function ReceiptDialog({
     queryKey: ["receipt", txId],
     enabled: open && !!txId,
     queryFn: async (): Promise<ReceiptData> => {
-      const { data, error } = await supabase.rpc("get_receipt", { p_tx: txId });
+      const { data, error } = await supabase.rpc("get_receipt", { p_tx: txId as string });
       if (error) throw error;
-      return data as ReceiptData;
+      return data as unknown as ReceiptData;
     },
   });
 
