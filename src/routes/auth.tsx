@@ -69,7 +69,7 @@ function AuthPage() {
             src={actualLogo.url}
             alt="NexTim"
             className="h-6 w-6 object-contain"
-            style={{ mixBlendMode: "screen" }}
+            style={{ mixBlendMode: "screen", filter: "invert(1) hue-rotate(180deg) brightness(1.1)" }}
           /> NexTim
         </Link>
         <div>
@@ -87,8 +87,7 @@ function AuthPage() {
             <img
               src={actualLogo.url}
               alt="NexTim"
-              className="h-6 w-6 object-contain"
-              style={{ mixBlendMode: "multiply" }}
+              className="logo-blend h-6 w-6 object-contain"
             /> NexTim
           </Link>
           <Tabs defaultValue="login">
