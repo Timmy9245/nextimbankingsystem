@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { PinService } from "@/lib/banking/models";
 import { toast } from "sonner";
-import { ShieldCheck, KeyRound } from "lucide-react";
+import { ShieldCheck, KeyRound, RotateCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — NexTim" }] }),
@@ -19,18 +20,25 @@ function Settings() {
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"pin" | "password">("pin");
+  const [password, setPassword] = useState("");
 
   useEffect(() => { PinService.hasPin().then(setHasPin).catch(() => setHasPin(false)); }, []);
 
   async function save() {
     if (next.length !== 4 || !/^\d{4}$/.test(next)) { toast.error("PIN must be 4 digits"); return; }
     if (next !== confirm) { toast.error("PINs do not match"); return; }
-    if (hasPin && current.length !== 4) { toast.error("Enter your current PIN"); return; }
     setLoading(true);
     try {
-      await PinService.setPin(next, hasPin ? current : undefined);
+      if (hasPin && mode === "password") {
+        if (!password) { toast.error("Enter your account password"); setLoading(false); return; }
+        await PinService.resetPinWithPassword(next, password);
+      } else {
+        if (hasPin && current.length !== 4) { toast.error("Enter your current PIN"); setLoading(false); return; }
+        await PinService.setPin(next, hasPin ? current : undefined);
+      }
       toast.success(hasPin ? "PIN updated" : "Transaction PIN set");
-      setCurrent(""); setNext(""); setConfirm("");
+      setCurrent(""); setNext(""); setConfirm(""); setPassword("");
       setHasPin(true);
     } catch (e) { toast.error((e as Error).message); }
     finally { setLoading(false); }
@@ -55,8 +63,30 @@ function Settings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {hasPin && (
-            <PinField label="Current PIN" value={current} onChange={setCurrent} />
+          {hasPin && mode === "pin" && (
+            <>
+              <PinField label="Current PIN" value={current} onChange={setCurrent} />
+              <button
+                type="button"
+                onClick={() => setMode("password")}
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <RotateCw className="h-3 w-3" /> Forgot PIN? Reset with your account password
+              </button>
+            </>
+          )}
+          {hasPin && mode === "password" && (
+            <div className="space-y-2">
+              <Label>Account password</Label>
+              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+              <button
+                type="button"
+                onClick={() => setMode("pin")}
+                className="text-xs text-muted-foreground hover:underline"
+              >
+                Use current PIN instead
+              </button>
+            </div>
           )}
           <PinField label={hasPin ? "New PIN" : "Choose a 4-digit PIN"} value={next} onChange={setNext} />
           <PinField label="Confirm PIN" value={confirm} onChange={setConfirm} />
