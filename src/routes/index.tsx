@@ -26,8 +26,7 @@ function Index() {
             <img
               src={actualLogo.url}
               alt="NexTim"
-              className="h-9 w-9 object-contain"
-              style={{ mixBlendMode: "multiply" }}
+              className="logo-blend h-9 w-9 object-contain"
             />
             <span className="font-semibold tracking-tight">NexTim</span>
           </div>
@@ -42,8 +41,7 @@ function Index() {
         <img
           src={wordmark.url}
           alt="NexTim"
-          className="mx-auto mb-8 h-16 md:h-20 w-auto"
-          style={{ mixBlendMode: "multiply" }}
+          className="logo-blend mx-auto mb-8 h-16 md:h-20 w-auto"
         />
         <h1 className="mx-auto max-w-3xl text-5xl font-semibold tracking-tight md:text-6xl">
           The nexus of smart banking.
