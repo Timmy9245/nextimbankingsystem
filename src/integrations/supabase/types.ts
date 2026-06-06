@@ -462,6 +462,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      sp_reset_pin: { Args: { p_new: string }; Returns: undefined }
       sp_set_pin: {
         Args: { p_current?: string; p_new: string }
         Returns: undefined
