@@ -30,6 +30,7 @@ const TYPE_LABEL: Record<string, string> = {
   transfer_in: "Incoming Transfer",
   loan_disbursement: "Loan Disbursement",
   loan_repayment: "Loan Repayment",
+  bill_payment: "Bill Payment",
 };
 
 function mask(num?: string | null) {

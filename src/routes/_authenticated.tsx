@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, History, Landmark, ShieldAlert, LogOut, Receipt, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import actualLogo from "@/assets/actual_logo.jpg.asset.json";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -59,6 +60,7 @@ function AuthedLayout() {
           </nav>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline text-xs text-muted-foreground max-w-[160px] truncate">{email}</span>
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4 mr-1" />Sign out</Button>
           </div>
         </div>

@@ -154,6 +154,15 @@ export class PinService {
     const { error } = await supabase.rpc("sp_set_pin", { p_new: newPin, p_current: currentPin });
     if (error) throw new BankingError(error.message);
   }
+  /** Reset PIN after the user re-authenticates with their account password. */
+  static async resetPinWithPassword(newPin: string, password: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) throw new BankingError("You must be signed in.");
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email: user.email, password });
+    if (authErr) throw new BankingError("Incorrect account password");
+    const { error } = await supabase.rpc("sp_reset_pin", { p_new: newPin });
+    if (error) throw new BankingError(error.message);
+  }
 }
 
 export class BillService {
