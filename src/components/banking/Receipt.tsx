@@ -50,7 +50,7 @@ function Header() {
   return (
     <div className="flex flex-col items-center gap-1 pt-2">
       <div className="flex items-center gap-2">
-        <img src={actualLogo.url} alt="NexTim" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
+        <img src={actualLogo.url} alt="NexTim" className="logo-blend h-8 w-8 object-contain" />
         <div className="leading-tight">
           <p className="font-semibold text-base text-foreground">NexTim</p>
           <p className="text-[10px] tracking-[0.2em] text-muted-foreground -mt-0.5">DIGITAL BANKING</p>
@@ -181,7 +181,7 @@ export function ReceiptDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm p-0 overflow-hidden gap-0 print:shadow-none print:border-0">
+      <DialogContent className="max-w-[340px] sm:max-w-[360px] p-0 overflow-hidden gap-0 print:shadow-none print:border-0 max-h-[88vh] overflow-y-auto text-[13px]">
         {variant === "detailed" && (
           <div className="flex items-center justify-between px-5 py-3 border-b border-border print:hidden">
             <p className="font-semibold text-sm">Transaction Details</p>

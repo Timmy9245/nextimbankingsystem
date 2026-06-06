@@ -44,8 +44,7 @@ function AuthedLayout() {
             <img
               src={actualLogo.url}
               alt="NexTim"
-              className="h-8 w-8 object-contain"
-              style={{ mixBlendMode: "multiply" }}
+              className="logo-blend h-8 w-8 object-contain"
             />
             <span className="hidden sm:inline">NexTim</span>
           </Link>
