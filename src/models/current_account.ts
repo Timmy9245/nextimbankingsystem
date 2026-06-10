@@ -1,0 +1,1 @@
+export { CurrentAccount } from "@/lib/banking/models";
