@@ -1,0 +1,1 @@
+export { LoanService } from "@/lib/banking/models";

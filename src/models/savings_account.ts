@@ -1,0 +1,1 @@
+export { SavingsAccount } from "@/lib/banking/models";
