@@ -5,6 +5,8 @@ import { LayoutDashboard, History, Landmark, ShieldAlert, LogOut, Receipt, Setti
 import { Button } from "@/components/ui/button";
 import actualLogo from "@/assets/actual_logo.jpg.asset.json";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AccountProvider, useAccountContext } from "@/lib/banking/account-context";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -40,17 +42,19 @@ function AuthedLayout() {
     });
   }, []);
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <TopBar displayName={displayName} />
-          <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 md:py-10">
-            <Outlet />
-          </main>
+    <AccountProvider>
+      <SidebarProvider defaultOpen={false}>
+        <div className="min-h-screen flex w-full bg-background">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <TopBar displayName={displayName} />
+            <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 md:py-10">
+              <Outlet />
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </AccountProvider>
   );
 }
 
@@ -141,6 +145,7 @@ function TopBar({ displayName }: { displayName: string }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <AccountPicker />
           {displayName && (
             <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[180px]">
               Hi, <span className="text-foreground font-medium">{displayName}</span>
@@ -150,5 +155,25 @@ function TopBar({ displayName }: { displayName: string }) {
         </div>
       </div>
     </header>
+  );
+}
+
+function AccountPicker() {
+  const { accounts, selectedId, setSelectedId } = useAccountContext();
+  if (accounts.length === 0) return null;
+  return (
+    <Select value={selectedId || undefined} onValueChange={setSelectedId}>
+      <SelectTrigger className="h-9 w-[150px] sm:w-[200px]" aria-label="Active account">
+        <SelectValue placeholder="Select account" />
+      </SelectTrigger>
+      <SelectContent>
+        {accounts.map((a) => (
+          <SelectItem key={a.id} value={a.id}>
+            <span className="capitalize">{a.type}</span>
+            <span className="ml-2 font-mono text-xs text-muted-foreground">•{a.accountNumber.slice(-4)}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
