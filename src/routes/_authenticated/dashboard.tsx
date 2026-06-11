@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ArrowDown, ArrowUp, ArrowRightLeft } from "lucide-react";
+import { Plus, ArrowDown, ArrowUp, ArrowRightLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { ReceiptDialog } from "@/components/banking/Receipt";
 import { PinDialog } from "@/components/banking/PinDialog";
@@ -31,6 +31,17 @@ function Dashboard() {
   const { data: hasPin } = useQuery({ queryKey: ["has-pin"], queryFn: () => PinService.hasPin() });
   const [selectedId, setSelectedId] = useState<string>("");
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const [showBalance, setShowBalance] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("nextim:showBalance") !== "0";
+  });
+  function toggleBalance() {
+    setShowBalance((v) => {
+      const next = !v;
+      if (typeof window !== "undefined") localStorage.setItem("nextim:showBalance", next ? "1" : "0");
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (!selectedId && accounts.length) setSelectedId(accounts[0].id);
@@ -61,7 +72,20 @@ function Dashboard() {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p className="text-sm text-muted-foreground">Total balance</p>
-          <h1 className="text-4xl font-semibold tabular-nums">{formatNaira(totalBalance)}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl font-semibold tabular-nums">
+              {showBalance ? formatNaira(totalBalance) : "₦••••••"}
+            </h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleBalance}
+              aria-label={showBalance ? "Hide balance" : "Show balance"}
+              title={showBalance ? "Hide balance" : "Show balance"}
+            >
+              {showBalance ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
         <OpenAccountButton onOpened={refresh} />
       </div>
