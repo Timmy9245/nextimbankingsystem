@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccountRepository, TransferService, type Account, type AccountType } from "@/lib/banking/models";
+import { useAccountContext } from "@/lib/banking/account-context";
 import { AccountCard, formatNaira } from "@/components/banking/AccountCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,30 +25,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const qc = useQueryClient();
-  const { data: accounts = [], isLoading } = useQuery({
-    queryKey: ["accounts"],
-    queryFn: () => AccountRepository.listForUser(),
-  });
+  const { accounts, isLoading, selectedId, setSelectedId, selected, showBalance, toggleBalance } = useAccountContext();
   const { data: hasPin } = useQuery({ queryKey: ["has-pin"], queryFn: () => PinService.hasPin() });
-  const [selectedId, setSelectedId] = useState<string>("");
   const [receiptId, setReceiptId] = useState<string | null>(null);
-  const [showBalance, setShowBalance] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem("nextim:showBalance") !== "0";
-  });
-  function toggleBalance() {
-    setShowBalance((v) => {
-      const next = !v;
-      if (typeof window !== "undefined") localStorage.setItem("nextim:showBalance", next ? "1" : "0");
-      return next;
-    });
-  }
-
-  useEffect(() => {
-    if (!selectedId && accounts.length) setSelectedId(accounts[0].id);
-  }, [accounts, selectedId]);
-
-  const selected = accounts.find((a) => a.id === selectedId);
   const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
 
   function refresh() { qc.invalidateQueries({ queryKey: ["accounts"] }); qc.invalidateQueries({ queryKey: ["transactions"] }); }
@@ -102,7 +82,13 @@ function Dashboard() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {accounts.map((a) => (
-              <AccountCard key={a.id} account={a} selected={a.id === selectedId} onSelect={() => setSelectedId(a.id)} />
+              <AccountCard
+                key={a.id}
+                account={a}
+                selected={a.id === selectedId}
+                onSelect={() => setSelectedId(a.id)}
+                hideBalance={a.id === selectedId && !showBalance}
+              />
             ))}
           </div>
 
