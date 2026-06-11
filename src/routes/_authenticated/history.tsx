@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatNaira } from "@/components/banking/AccountCard";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { ReceiptDialog } from "@/components/banking/Receipt";
+import { useAccountContext } from "@/lib/banking/account-context";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "Transactions — NexTim" }] }),
@@ -24,17 +25,20 @@ function History() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const { selectedId, selected } = useAccountContext();
 
   const { data: txs = [], isLoading } = useQuery({
-    queryKey: ["transactions", from, to],
+    queryKey: ["transactions", from, to, selectedId],
     queryFn: async (): Promise<Tx[]> => {
       let q = supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(500);
+      if (selectedId) q = q.eq("account_id", selectedId);
       if (from) q = q.gte("created_at", from);
       if (to) q = q.lte("created_at", to + "T23:59:59");
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Tx[];
     },
+    enabled: !!selectedId,
   });
 
   const chart = useMemo(() => {
@@ -50,7 +54,11 @@ function History() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Transaction history</h1>
-        <p className="text-muted-foreground">Filter by date and review every entry.</p>
+        <p className="text-muted-foreground">
+          {selected
+            ? <>Showing <span className="capitalize">{selected.type}</span> account <span className="font-mono">{selected.accountNumber}</span>. Switch account from the top bar.</>
+            : "Select an account from the top bar to view its transactions."}
+        </p>
       </div>
 
       <Card>

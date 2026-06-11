@@ -5,7 +5,7 @@ export function formatNaira(amount: number) {
   return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 2 }).format(amount);
 }
 
-export function AccountCard({ account, selected, onSelect }: { account: Account; selected?: boolean; onSelect?: () => void }) {
+export function AccountCard({ account, selected, onSelect, hideBalance }: { account: Account; selected?: boolean; onSelect?: () => void; hideBalance?: boolean }) {
   return (
     <button
       onClick={onSelect}
@@ -23,9 +23,11 @@ export function AccountCard({ account, selected, onSelect }: { account: Account;
         </div>
         <Wallet className="h-5 w-5 opacity-80" />
       </div>
-      <p className="mt-6 text-3xl font-semibold tabular-nums">{formatNaira(account.balance)}</p>
+      <p className="mt-6 text-3xl font-semibold tabular-nums">{hideBalance ? "₦••••••" : formatNaira(account.balance)}</p>
       <p className="mt-1 text-xs opacity-70">
-        {account.type === "savings" ? `Monthly interest: ${formatNaira(account.calculateInterest())}` : "Current account · no interest"}
+        {account.type === "savings"
+          ? `Monthly interest: ${hideBalance ? "₦••••" : formatNaira(account.calculateInterest())}`
+          : "Current account · no interest"}
       </p>
     </button>
   );
