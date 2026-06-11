@@ -29,12 +29,22 @@ const NAV = [
 ] as const;
 
 function AuthedLayout() {
+  const [displayName, setDisplayName] = useState("");
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u) return;
+      const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
+      const name = (meta.full_name as string) || (meta.name as string) || u.email?.split("@")[0] || "";
+      setDisplayName(name);
+    });
+  }, []);
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <TopBar />
+          <TopBar displayName={displayName} />
           <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 md:py-10">
             <Outlet />
           </main>
@@ -102,7 +112,7 @@ function AppSidebar() {
   );
 }
 
-function TopBar() {
+function TopBar({ displayName }: { displayName: string }) {
   const { toggleSidebar } = useSidebar();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const current = NAV.find((n) => pathname === n.to || pathname.startsWith(n.to + "/"));
@@ -122,12 +132,22 @@ function TopBar() {
           >
             <Menu className="h-5 w-5" />
           </Button>
+          <Link to="/dashboard" className="flex items-center gap-2 shrink-0" aria-label="NexTim home">
+            <img src={actualLogo.url} alt="NexTim" className="logo-blend h-7 w-7 object-contain" />
+          </Link>
           <div className="flex items-center gap-2 min-w-0">
             {Icon && <Icon className="h-5 w-5 text-primary shrink-0" />}
             <h1 className="text-base sm:text-lg font-semibold truncate">{title}</h1>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          {displayName && (
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[180px]">
+              Hi, <span className="text-foreground font-medium">{displayName}</span>
+            </span>
+          )}
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
